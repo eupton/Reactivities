@@ -1,5 +1,10 @@
 # Building a new social activities platform
 
+## Prepare for the project
+### install vs code extensions
+  * SQLite by alexcvzz for exploring sqlite database from vs code
+    * usage: cntrl-shift-p> then type sqlite and select [sqlite: open database] then select the db file name to open the sqlite tools
+
 ## Create the project from the command line
 * separated the solution into multiple projects
 
@@ -9,17 +14,17 @@
 * Domain - The home for our data model definitions
 * Persistence - How we'll connect to our persistent data store (SQLite for development)
 
-###Here are the commands I ran to create and configure the project from the CLI:
-PS C:\Users\eupton\source\repos\practice\reactivities> dotnet new sln
+### Here are the commands needed to create and configure the project from the CLI:
+PS C:\Users\eupton\source\repos\practice\reactivities> **dotnet new sln**
 The template "Solution File" was created successfully.
-PS C:\Users\eupton\source\repos\practice\reactivities> ls
+PS C:\Users\eupton\source\repos\practice\reactivities> **ls**
 
 
-    Directory: C:\Users\eupton\source\repos\practice\reactivities
+  Directory: C:\Users\eupton\source\repos\practice\reactivities
 
-----                -------------         ------ ----
+----------------
 
-PS C:\Users\eupton\source\repos\practice\reactivities> dotnet new webapi -n API
+PS C:\Users\eupton\source\repos\practice\reactivities> **dotnet new webapi -n API**
 
 Processing post-creation actions...
 Running 'dotnet restore' on API\API.csproj...
@@ -27,7 +32,7 @@ Running 'dotnet restore' on API\API.csproj...
   Restored C:\Users\eupton\source\repos\practice\reactivities\API\API.csproj (in 194 ms).
 Restore succeeded.
 
-PS C:\Users\eupton\source\repos\practice\reactivities> dotnet new classlib -n Application
+PS C:\Users\eupton\source\repos\practice\reactivities> **dotnet new classlib -n Application**
 The template "Class library" was created successfully.
 
 Processing post-creation actions...
@@ -35,7 +40,7 @@ Running 'dotnet restore' on Application\Application.csproj...
   Determining projects to restore...
 Restore succeeded.
 
-PS C:\Users\eupton\source\repos\practice\reactivities> dotnet new classlib -n Domain
+PS C:\Users\eupton\source\repos\practice\reactivities> **dotnet new classlib -n Domain**
 The template "Class library" was created successfully.
 
 Processing post-creation actions...
@@ -44,13 +49,13 @@ The template "Class library" was created successfully.
 Processing post-creation actions...
 Restore succeeded.
 Project `API\API.csproj` added to the solution.
-PS C:\Users\eupton\source\repos\practice\reactivities> dotnet sln add .\Application\
+PS C:\Users\eupton\source\repos\practice\reactivities> **dotnet sln add .\Application\**
 Project `Application\Application.csproj` added to the solution.
-PS C:\Users\eupton\source\repos\practice\reactivities> dotnet sln add .\Domain\
+PS C:\Users\eupton\source\repos\practice\reactivities> **dotnet sln add .\Domain\**
 Project `Domain\Domain.csproj` added to the solution.
-PS C:\Users\eupton\source\repos\practice\reactivities> dotnet sln add .\Persistence\
+PS C:\Users\eupton\source\repos\practice\reactivities> **dotnet sln add .\Persistence\**
 Project `Persistence\Persistence.csproj` added to the solution.
-PS C:\Users\eupton\source\repos\practice\reactivities> dotnet sln
+PS C:\Users\eupton\source\repos\practice\reactivities> **dotnet sln**
 Required command was not provided.
 Usage: dotnet sln [options] <SLN_FILE> [command]
 
@@ -64,28 +69,29 @@ Commands:
   add <PROJECT_PATH>      Add one or more projects to a solution file.
   list                    List all projects in a solution file.
   remove <PROJECT_PATH>   Remove one or more projects from a solution file.
-PS C:\Users\eupton\source\repos\practice\reactivities> dotnet sln list
+
+PS C:\Users\eupton\source\repos\practice\reactivities> **dotnet sln list**
 Project(s)
 ----------
 API\API.csproj
 Application\Application.csproj
 Domain\Domain.csproj
 Persistence\Persistence.csproj
-PS C:\Users\eupton\source\repos\practice\reactivities> cd api
-PS C:\Users\eupton\source\repos\practice\reactivities\api> dotnet add reference ../Application
+PS C:\Users\eupton\source\repos\practice\reactivities> **cd api**
+PS C:\Users\eupton\source\repos\practice\reactivities\api> **dotnet add reference ../Application**
 Reference `..\Application\Application.csproj` added to the project.
-PS C:\Users\eupton\source\repos\practice\reactivities\api> cd ..
-PS C:\Users\eupton\source\repos\practice\reactivities> cd application
-PS C:\Users\eupton\source\repos\practice\reactivities\application> dotnet add reference ../Persistence
+PS C:\Users\eupton\source\repos\practice\reactivities\api> **cd ..**
+PS C:\Users\eupton\source\repos\practice\reactivities> **cd application**
+PS C:\Users\eupton\source\repos\practice\reactivities\application> **dotnet add reference ../Persistence**
 Reference `..\Persistence\Persistence.csproj` added to the project.
-PS C:\Users\eupton\source\repos\practice\reactivities\application> dotnet add reference ../Domain       
+PS C:\Users\eupton\source\repos\practice\reactivities\application> **dotnet add reference ../Domain**    
 Reference `..\Domain\Domain.csproj` added to the project.
-PS C:\Users\eupton\source\repos\practice\reactivities\application> cd .. 
-PS C:\Users\eupton\source\repos\practice\reactivities> cd .\Persistence\
-PS C:\Users\eupton\source\repos\practice\reactivities\Persistence> dotnet add reference ../Domain
+PS C:\Users\eupton\source\repos\practice\reactivities\application> **cd ..**
+PS C:\Users\eupton\source\repos\practice\reactivities> **cd .\Persistence\**
+PS C:\Users\eupton\source\repos\practice\reactivities\Persistence> **dotnet add reference ../Domain**
 Reference `..\Domain\Domain.csproj` added to the project.
-PS C:\Users\eupton\source\repos\practice\reactivities\Persistence> cd ..
-PS C:\Users\eupton\source\repos\practice\reactivities> code .
+PS C:\Users\eupton\source\repos\practice\reactivities\Persistence> **cd ..**
+PS C:\Users\eupton\source\repos\practice\reactivities> **code .**
 
 ### Create dbcontext in the Persistence Project
 * install dependencies for **Microsoft.EntityFrameworkCore.Sqlite** via nuget in the persistence project
@@ -171,6 +177,39 @@ appsettings.Development.json
 * **git init** initialize local git repo
   * initially shows tons on files that need to be loaded to git repo 
   * use microsoft's gitignore template to exclude unnecessary files from source control
-    * **dotnet new gitignore**
-    * *use **dotnet new -l** to list all available templates*
+    * run **dotnet new gitignore**
+    * *run **dotnet new -l** to list all available templates*
+  * create github repo
+    * run **git stage -A** to stage all changed files
+    * run **git commit -m "initial commit"**
+    * run **git branch -M main**
+    * run **git remote add origin https://github.com/eupton/reponame.git**
+    * run **git push -u origin main**
     
+## Create React Client Application
+* **npx create-react-app client-app --use-npm --template typescript**
+
+### Update CORS policy on api
+
+  add to Startup.ConfigureServices(...)
+  ```C#
+  services.AddCors(opt => 
+            {
+                opt.AddPolicy("CorsPolicy", policy =>
+                {
+                    policy.AllowAnyMethod().AllowAnyHeader().WithOrigins("http://localhost:3000");
+                });
+            });
+  ```
+
+  add to Startup.Configure(...)
+  ```C#
+    ...
+    app.UseRouting();
+
+    **app.UseCors("CorsPolicy");**
+    ...
+  ```
+
+### Install semantic ui css framework
+* **npm install semantic-ui-react semantic-ui-css**
