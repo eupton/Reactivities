@@ -10,7 +10,7 @@
 
 ### We'll have the following projects within Reactivities solution:
 * API - Will hold the controllers, routing, logic for performing actions on our data and returning results to the requesting client. Our api will follow a cqrs pattern
-* Application
+* Application - will hold most of our business logic and handle the Mediator Design Pattern's Commands and Queries
 * Domain - The home for our data model definitions
 * Persistence - How we'll connect to our persistent data store (SQLite for development)
 
@@ -207,9 +207,31 @@ appsettings.Development.json
     ...
     app.UseRouting();
 
-    **app.UseCors("CorsPolicy");**
+    app.UseCors("CorsPolicy");
     ...
   ```
 
-### Install semantic ui css framework
+### Install semantic ui css framework into client-app project folder
 * **npm install semantic-ui-react semantic-ui-css**
+
+### Add MediatR to the Application and API projects to implement the mediator behavioral design pattern
+* use nuget to install mediatr.microsoft.dependencyinjection
+* https://refactoring.guru/design-patterns/mediator
+
+### Add automapper to Application Project
+* use nuget gallery to install Automatpper.microsoft.dependencyinjection
+* will "automap" the payload from the client to properties of the entity objects on the server.
+
+#### Create mapping profile in Application.Core
+* inherits Automapper.Profile
+* configure dependency injection services for MediatR and Automapper in API.Startup.ConfigureServices method
+
+
+```C#
+    ...
+      services.AddMediatR(typeof(List.Handler).Assembly);
+      services.AddAutoMapper(typeof(Application.Core.MappingProfiles).Assembly);
+    ...
+```
+
+
