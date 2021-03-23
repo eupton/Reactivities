@@ -1,5 +1,4 @@
 import React from 'react'
-import { act } from 'react-dom/test-utils';
 import { Card, Image, Button } from 'semantic-ui-react';
 import { Activity } from '../../../app/models/activity';
 
