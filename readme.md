@@ -234,4 +234,25 @@ appsettings.Development.json
     ...
 ```
 
+### State management: Install and setup mobx and mobx-react-lite 
+* **npm i mobx mobx-react-lite**
+* mobx can have multiple stores (redux only has one store)
+* is written in typescript so plays nicely with projects written in typescript
+
+provide the store to the application index.tsx
+```javascript
+import...
+...
+import { store, StoreContext } from './app/stores/store';
+
+ReactDOM.render(
+  <StoreContext.Provider value={store}>
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>
+  </StoreContext.Provider>,
+  document.getElementById('root')
+);
+```
+
 
