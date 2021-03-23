@@ -255,4 +255,21 @@ ReactDOM.render(
 );
 ```
 
+### Add react routing via react-router-dom
+* *npm i react-router-dom*
+* *npm i @types/react-router-dom --save-dev*
 
+add routing by wrapping our <App /> component with <BrowserRouter /> in the index.tsx
+```javascript
+import...
+...
+import { BrowserRouter } from 'react-router-dom';
+
+ReactDOM.render(
+  ...
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  ...
+);
+```
