@@ -56,7 +56,7 @@ const ActivityForm = () => {
                 <Form.Input placeholder='City' value={activity.city} name='city' onChange={handleInputChange} />
                 <Form.Input placeholder='Venue' value={activity.venue} name='venue' onChange={handleInputChange} />
                 <Button floated='right' loading={loading} positive type='submit' content='Submit' />
-                <Button floated='right' type='button' content='Cancel' />
+                <Button floated='right' type='button' content='Cancel' as={Link} to='/activities' />
             </Form>
         </Segment>
     )
