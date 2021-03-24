@@ -146,6 +146,7 @@ appsettings.Development.json
     * from the command line use the dotnet ef cli tool **[dotnet ef database ...]**
         * **dotnet ef database -h** *for help*
         * **dotnet ef database update -p Persistence -s API**
+        * DROP DATABASE TO START FRESH: **dotnet ef database drop -s API -p Persistence**
     * via code
         * automatically applying the migrations in code
         * modify the API application entry point as follows:
@@ -224,8 +225,19 @@ appsettings.Development.json
 
 #### Create mapping profile in Application.Core
 * inherits Automapper.Profile
-* configure dependency injection services for MediatR and Automapper in API.Startup.ConfigureServices method
+* Create a mapping definition for AutoMapper
 
+```C#
+    public class MappingProfiles : Profile
+    {
+        public MappingProfiles()
+        {
+            CreateMap<Activity, Activity>();
+        }
+    }
+```
+
+* configure dependency injection services for MediatR and Automapper in API.Startup.ConfigureServices method
 
 ```C#
     ...
@@ -273,3 +285,122 @@ ReactDOM.render(
   ...
 );
 ```
+### API Validation and Exception Handling
+
+#### Add FluentValidation nuget package into Application Project
+
+#### Create Validators for Domain Objects
+* Using fluent validation create an ActivityValidator object and wire it up to the Mediatr Handlers
+
+```C#
+    public class ActivityValidator : AbstractValidator<Activity>
+    {
+        public ActivityValidator()
+        {
+            RuleFor(x => x.Title).NotEmpty();
+            RuleFor(x => x.Description).NotEmpty();
+            RuleFor(x => x.Date).NotEmpty();
+            RuleFor(x => x.Category).NotEmpty();
+            RuleFor(x => x.City).NotEmpty();
+            RuleFor(x => x.Venue).NotEmpty();
+        }
+    }
+
+
+    ///Create handler
+    public class Create
+    {
+        ...
+        public class CommandValidator : AbstractValidator<Command>
+        {
+            public CommandValidator()
+            {
+                RuleFor(x => x.Activity).SetValidator(new ActivityValidator());
+            }
+        }
+        ...
+    }
+```
+
+* also in the API startup.cs add a service for fluent validation and point it to the project mediatr handlers/fluent validators
+```C#
+  public void ConfigureServices(IServiceCollection services)
+  {
+    ...
+      services.AddControllers().AddFluentValidation(config => 
+      {
+          config.RegisterValidatorsFromAssemblyContaining<Create>();
+      });
+    ...
+```
+
+#### Setup middleware on API project to handle exceptions
+* create ExceptionMiddleware for processing exceptions
+* wireup the API application to use the new exception processing
+
+```C#
+    ///Api.Middleware.ExceptionMiddleware.cs
+    public class ExceptionMiddleware
+    {
+        ...
+    }
+    
+
+    ///startup.cs
+    public void Configure(...)
+    {
+        app.UseMiddleware<ExceptionMiddleware>();
+        ...
+    }
+```
+
+#### Client validation and error handling
+* install react-toastify **npm install react-toastify**
+* setup the axios agent.tsx to intercept errors passed from the api and provide various notifications and routing accordingly
+* setup new mobx store for common app state and error data
+* items of interest: 
+  * created serverError.ts to create a new interface ServerError
+  * created ServerError.tsx component for displaying server errors and added new route to navigate user when server error 500 occurs
+  * create commonStore.ts for new mobx store
+  * updated store.ts to include commonStore
+  * modify axios (agent.tsx) to handle errors
+  * setup Router to use history (index.tsx) and use history.push(...) to send user to an error page
+    * update index.tsx to use <Router></Router> instead of <BrowserRouter></BrowserRouter>
+
+index.tsx
+```C#
+import { createBrowserHistory } from 'history'; //part of react-router
+
+export const history = createBrowserHistory();
+
+ReactDOM.render(
+  <StoreContext.Provider value={store}>
+    <Router history={history}>
+      <App />
+    </Router>
+    ...
+```
+
+agent.tsx
+```C#
+  axios.interceptors.response.use(async response => {
+    ...
+    switch(status) {
+        case 400:
+            ...
+        case 401:
+            ...
+        case 404:
+            ...
+            history.push('/not-found');
+        case 500:
+            ...
+            store.commonStore.setServerError(data);
+            history.push('/server-error');
+            break;
+    }
+    return Promise.reject(error);
+})
+```
+
+
