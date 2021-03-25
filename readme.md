@@ -1,4 +1,7 @@
 # Building a new social activities platform
+## Trick of vs code
+  * sometimes to get quickfix (cntrl .) doesn't work after nuget package install
+    * use **dotnet restore** in the terminal
 
 ## Prepare for the project
 ### install vs code extensions
@@ -410,3 +413,158 @@ agent.tsx
 * install date-fns same version as react-datepick is using check date-fns version with **npm ls date-fns**
 * install date-fns with matching version **npm i date-fns@2.19.0**
 ### 
+
+
+### Authentication
+
+#### Creating the user entity and wiring up the dbcontext
+* Create the user entity. Inherit user class from IdentityUser.
+
+```C#
+public class AppUser : IdentityUser
+```
+
+* update the datacontext to inherit IdentityDbContext<T> where T is type of UserEntity instead of DbContect
+* by inheriting form IdentityDbContext EF will automatically generate the requisite tables for the AppUser : IdentityUser information
+
+```C# 
+public class DataContext : IdentityDbContext<AppUser>
+```
+
+* add new migrations for the identity classes
+  * **dotnet ef migrations add IdentityAdded -p Persistence -s API**
+
+
+#### Seed user data
+* Seed database with default users
+  * update the SeedData signature to take a usermanager argument
+
+```C# 
+  public static async Task SeedData(DataContext context, UserManager<AppUser> userManager)
+  {
+      if (!userManager.Users.Any())
+      {
+          var users = new List<AppUser>
+          {
+              new AppUser{DisplayName = "Bob", UserName = "bob", Email = "bob@test.com"},
+              new AppUser{DisplayName = "Tom", UserName = "tom", Email = "Tom@test.com"},
+              new AppUser{DisplayName = "Jane", UserName = "jane", Email = "jane@test.com"}
+          };
+
+          foreach (var user in users)
+          {
+              await userManager.CreateAsync(user, "Pa$$w0rd");
+          }
+      }
+  }
+```
+
+* in the API.Program.cs get the usermanager service and pass it to the seedData method
+```C#
+  ...
+  var userManager = services.GetRequiredService<UserManager<AppUser>>();
+  await Seed.SeedData(context, userManager);
+  ...
+```
+
+#### Create the JWT Service (Json Web Token)
+* install Microsoft.IdentityModel.Tokens nuget package
+* install System.IdentityModel.Tokens.Jwt nuget package
+* create TokenService class that generates a token for validated users
+
+```C#
+    public class TokenService
+    {
+        public string CreateToken(AppUser user)
+        {
+    ...
+```
+
+* add scoped token service to the IServiceCollection in ConfigureServices so that we can use it with dependency injection
+
+```C#
+  //putting this in IdentityServiceExtensions which is called from within startup.configureservices method
+  services.AddScoped<TokenService>();
+```
+
+* install Microsoft.AspNetCore.Authentication.JwtBearer nuget package
+* configure the authentication service to use the jwt tokens 
+
+```C#
+  //updated the services.AddAuthentication with a new authenticationscheme
+  services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(opt => 
+    {
+        opt.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = key,
+            ValidateIssuer = false,
+            ValidateAudience = false
+        };
+    });
+```
+
+* update the startup.cs to be able to use authentication
+* this must come before the app.UseAuthorization()
+```C#
+  public void Configure(...)
+  {
+    ...
+    app.UseAuthentication(); //must come before app.UseAuthorization()
+    app.UseAuthorization();
+    ...
+  }
+```
+
+
+
+#### Storing App Secrets
+**Note on storing app secrets in the application**
+https://docs.microsoft.com/en-us/aspnet/core/security/app-secrets?view=aspnetcore-5.0&tabs=windows#secret-manager
+
+* for dev purposes we'll store our token key inside of appsettings.Development.json as
+```json
+  "TokenKey": "super secret key"
+```
+* this can be accessed via the injected IConfiguration instance such as
+```C#
+    public class TokenService
+    {
+        public TokenService(IConfiguration config)
+        {
+          var key = config["TokenKey"];
+        }
+        ...
+    }
+```
+
+#### Authorization Policy
+* setup policy to require authorization for every API unless explicitly setup otherwise
+
+```C#
+  /// configured the opt to require authorization on every api controller by default
+  services.AddControllers(opt => 
+  {
+      var policy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
+      opt.Filters.Add(new AuthorizeFilter(policy));
+  })
+  .AddFluentValidation(config => 
+```
+
+* to restrict individual apiController methods and require auth, decorate the method with [Authorize] attribute
+```C#
+  [Authorize]
+  [HttpGet("{id}")]
+  public async Task<IActionResult> GetActivity(Guid id)
+```
+
+* allow anonymous api call on the Login method of the AccountController using the [AllowAnonymous] attribute
+
+```C#
+    [AllowAnonymous]
+    [ApiController]
+    [Route("api/[controller]")]
+    public class AccountController : ControllerBase
+    ...
+```
