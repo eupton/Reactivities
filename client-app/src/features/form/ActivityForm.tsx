@@ -2,7 +2,7 @@ import { observer } from 'mobx-react-lite';
 import React, { useState, ChangeEvent, useEffect } from 'react';
 import { useHistory, useParams } from 'react-router';
 import { Link } from 'react-router-dom';
-import {Segment, Button } from 'semantic-ui-react';
+import {Segment, Button, Header } from 'semantic-ui-react';
 import LoadingComponent from '../../app/layout/LoadingComponent';
 import { useStore } from '../../app/stores/store';
 import {v4 as uuid} from 'uuid';
@@ -35,7 +35,7 @@ const ActivityForm = () => {
         title: Yup.string().required('The activity title is required'),
         description: Yup.string().required('The activity description is required'),
         category: Yup.string().required(),
-        date: Yup.string().required(),
+        date: Yup.string().required('Date is required').nullable(),
         venue: Yup.string().required(),
         city: Yup.string().required(),
     })
@@ -44,32 +44,32 @@ const ActivityForm = () => {
         if (id) loadActivity(id).then(activity => setActivity(activity!))
     }, [id, loadActivity]);
 
-    // function handleSubmit() {
-    //     if (activity.id.length === 0) {
-    //       let newActivity = {
-    //           ...activity,
-    //           id: uuid()
-    //       };
-    //       createActivity(newActivity).then(() => history.push(`/activities/${newActivity.id}`));
-    //     } else {
-    //       updateActivity(activity).then(() => history.push(`/activities/${activity.id}`));
-    //     }
-    // }
-
-    // function handleInputChange(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
-    //     const {name, value} = event.target;
-    //     setActivity({...activity, [name]: value});
-    // }
+    function handleFormSubmit(activity: Activity) {
+        if (activity.id.length === 0) {
+          let newActivity = {
+              ...activity,
+              id: uuid()
+          };
+          createActivity(newActivity).then(() => history.push(`/activities/${newActivity.id}`));
+        } else {
+          updateActivity(activity).then(() => history.push(`/activities/${activity.id}`));
+        }
+    }
 
     if (loadingInitial) return <LoadingComponent content='Loading activity...' />
 
     return (
         <Segment clearing>
-            <Formik validationSchema={validationSchema} enableReinitialize initialValues={activity} onSubmit={values => console.log(values)} >
-                {({ handleSubmit}) => (
-                    <Form  className='ui form' onSubmit={handleSubmit} autoComplete='off'>
+            <Header content='Activity Detail' sub color='teal' />
+            <Formik 
+                validationSchema={validationSchema} 
+                enableReinitialize initialValues={activity} 
+                onSubmit={values => handleFormSubmit(values )} >
+                {({ handleSubmit, isValid, isSubmitting, dirty}) => (
+                    <Form  className='ui form' 
+                        onSubmit={handleSubmit} 
+                        autoComplete='off'>
                         <MyTextInput name='title' placeholder='Title' />
-                        
                         <MyTextArea rows={3} placeholder='Description' name='description' />
                         <MySelectInput options={categoryOptions}  placeholder='Category' name='category' />
                         <MyDateInput
@@ -79,9 +79,15 @@ const ActivityForm = () => {
                             timeCaption='time'
                             dateFormat='MMMM d, yyyy h:mm aa'
                         />
+                        <Header content='Location Details' sub color='teal' />
                         <MyTextInput placeholder='City' name='city' />
                         <MyTextInput placeholder='Venue' name='venue' />
-                        <Button floated='right' loading={loading} positive type='submit' content='Submit' />
+                        <Button 
+                            disabled={isSubmitting || !dirty || !isValid}
+                            floated='right' 
+                            loading={loading} 
+                            positive type='submit' 
+                            content='Submit' />
                         <Button floated='right' type='button' content='Cancel' as={Link} to='/activities' />
                     </Form>
                 )}
