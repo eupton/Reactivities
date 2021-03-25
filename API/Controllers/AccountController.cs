@@ -26,7 +26,7 @@ namespace API.Controllers
             _signInManager = signInManager;
         }
 
-        [HttpPost]
+        [HttpPost("login")]
         public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
         {
             var user = await _userManager.FindByEmailAsync(loginDto.Email);
