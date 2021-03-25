@@ -402,6 +402,11 @@ agent.tsx
     return Promise.reject(error);
 })
 ```
-### 
+### supercharging our forms
 * install formik **npm i formik**
-
+* install yub for validation **npm i yup --save**
+* install typescript for yup **npm i @types/yup**
+* install react-datepicker **npm i react-datepicker** and **npm i @types/react-datepicker --save-dev**
+* install date-fns same version as react-datepick is using check date-fns version with **npm ls date-fns**
+* install date-fns with matching version **npm i date-fns@2.19.0**
+### 
