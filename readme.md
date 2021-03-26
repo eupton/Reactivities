@@ -254,6 +254,14 @@ appsettings.Development.json
 * mobx can have multiple stores (redux only has one store)
 * is written in typescript so plays nicely with projects written in typescript
 
+##### Keep in mind with mobx store 
+```
+Any time you want to modify an observable after an await, it will take place in a separate tick. 
+Which must be handled as a separate action. Two approaches are available to handle this:
+```
+* **Put it in a separate function**
+* use **runInAction()** 
+
 provide the store to the application index.tsx
 ```javascript
 import...
