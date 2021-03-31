@@ -52,11 +52,11 @@ The template "Class library" was created successfully.
 Processing post-creation actions...
 Restore succeeded.
 Project `API\API.csproj` added to the solution.
-PS C:\Users\eupton\source\repos\practice\reactivities> **dotnet sln add .\Application\**
+PS C:\Users\eupton\source\repos\practice\reactivities> **dotnet sln add .\Application**
 Project `Application\Application.csproj` added to the solution.
-PS C:\Users\eupton\source\repos\practice\reactivities> **dotnet sln add .\Domain\**
+PS C:\Users\eupton\source\repos\practice\reactivities> **dotnet sln add .\Domain**
 Project `Domain\Domain.csproj` added to the solution.
-PS C:\Users\eupton\source\repos\practice\reactivities> **dotnet sln add .\Persistence\**
+PS C:\Users\eupton\source\repos\practice\reactivities> **dotnet sln add .\Persistence**
 Project `Persistence\Persistence.csproj` added to the solution.
 PS C:\Users\eupton\source\repos\practice\reactivities> **dotnet sln**
 Required command was not provided.
@@ -90,7 +90,7 @@ Reference `..\Persistence\Persistence.csproj` added to the project.
 PS C:\Users\eupton\source\repos\practice\reactivities\application> **dotnet add reference ../Domain**    
 Reference `..\Domain\Domain.csproj` added to the project.
 PS C:\Users\eupton\source\repos\practice\reactivities\application> **cd ..**
-PS C:\Users\eupton\source\repos\practice\reactivities> **cd .\Persistence\**
+PS C:\Users\eupton\source\repos\practice\reactivities> **cd .\Persistence**
 PS C:\Users\eupton\source\repos\practice\reactivities\Persistence> **dotnet add reference ../Domain**
 Reference `..\Domain\Domain.csproj` added to the project.
 PS C:\Users\eupton\source\repos\practice\reactivities\Persistence> **cd ..**
@@ -223,7 +223,7 @@ appsettings.Development.json
 * https://refactoring.guru/design-patterns/mediator
 
 ### Add automapper to Application Project
-* use nuget gallery to install Automatpper.microsoft.dependencyinjection
+* use nuget gallery to install Automapper.microsoft.dependencyinjection
 * will "automap" the payload from the client to properties of the entity objects on the server.
 
 #### Create mapping profile in Application.Core
@@ -576,3 +576,10 @@ https://docs.microsoft.com/en-us/aspnet/core/security/app-secrets?view=aspnetcor
     public class AccountController : ControllerBase
     ...
 ```
+
+
+### Create a new Project named Infrastructure
+* **dotnet new classlib -n Infrastructure** 
+* **dotnet sln add Infrastructure**
+* **dotnet add reference ../Application**
+* **dotnet add reference ../Infrastructure**
