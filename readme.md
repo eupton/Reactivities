@@ -578,8 +578,121 @@ https://docs.microsoft.com/en-us/aspnet/core/security/app-secrets?view=aspnetcor
 ```
 
 
-### Create a new Project named Infrastructure
+### Create a new Infrastructure Project 
+*Setting up a new project to handle features that we want to keep abstracted from the rest of the applicaiton. For example we don't want the application layer to manage how to get the current user or whether the current user is authorized to perform a task.*
+
 * **dotnet new classlib -n Infrastructure** 
 * **dotnet sln add Infrastructure**
 * **dotnet add reference ../Application**
 * **dotnet add reference ../Infrastructure**
+
+* we want to get the current user so that we can adjust attendance on an activity without having to pass that throughout the application
+* Create an interface for the user accessor
+```C#
+namespace Application.Interfaces
+{
+    public interface IUserAccessor
+    {
+        string GetUsername();
+    }
+}
+```
+
+* we'll use the httpcontext to pull the current user. Create public class UserAccessor : IUserAccessor in the Infrastructure.Security Project
+
+```C#
+//namespace Infrastructure.Security
+  public class UserAccessor : IUserAccessor
+    {
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        public UserAccessor(IHttpContextAccessor httpContextAccessor)
+        {
+            _httpContextAccessor = httpContextAccessor;
+
+        }
+
+        public string GetUsername()
+        {
+            return _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Name);
+        }
+    }
+```
+
+* add a scoped service to the API services collection
+
+```C#
+  services.AddScoped<IUserAccessor, UserAccessor>();
+```
+
+**Now I can get the current User with this accessor utility**
+
+```C#
+public Handler(DataContext context, IUserAccessor userAccessor)
+  {
+      _userAccessor = userAccessor;
+      _context = context;
+  }
+
+  ...
+  var user = await _context.Users
+    .FirstOrDefaultAsync(x => x.UserName == _userAccessor.GetUsername());
+
+```
+
+#### Setup some DTO classes to shape the data so that we don't get Json cycling errors
+* Create an ActivityDto
+* Create an Profile dto for list of User Attendance
+* Add new MappingProfiles in AutoMapper for Activity -> ActivityDto and ActivityAttendee -> Profile
+
+```C#
+  CreateMap<Activity, ActivityDto>()
+      .ForMember(d => d.HostUsername, o => o.MapFrom(s => s.Attendees
+          .FirstOrDefault(x => x.IsHost).AppUser.UserName));
+  CreateMap<ActivityAttendee, Profiles.Profile>()
+      .ForMember(d => d.DisplayName, o => o.MapFrom(s => s.AppUser.DisplayName))
+      .ForMember(d => d.Username, o => o.MapFrom(s => s.AppUser.UserName))
+      .ForMember(d => d.Bio, o => o.MapFrom(s => s.AppUser.Bio));
+```
+
+* Changed all of the return types for our mediatr handlers from the Activity Entity to the ActivityDto
+  * Use AutoMapper ProjectTo to use the dto mapping as our returned data 
+  *(replaces the need for .Include().ThenInclude() and then a manual call to _mapper.Map<List<ActivityDto>>(activities))*
+  *It automatically projects the _context.Activities into ActivityDto objects*
+* Followed this same pattern when necessary in other Mediatr commands/queries like Details.cs
+
+```C#
+public async Task<Result<List<ActivityDto>>> Handle(Query request, CancellationToken cancellationToken)
+      {
+          var activities = await _context.Activities
+          .ProjectTo<ActivityDto>(_mapper.ConfigurationProvider)
+          .ToListAsync(cancellationToken);
+          
+          ...
+      }
+```
+
+
+### Add authorization to allow only hosts to edit the event details
+* Add IsHostRequirement : IAuthorizationRequirement class to Infrastructure.Security
+* Add Authorization Policy to API services collection to restrict editing to host user
+
+```C#
+  services.AddAuthorization(opt =>
+  {
+      opt.AddPolicy("IsActivityHost", policy =>
+      {
+          policy.Requirements.Add(new IsHostRequirement());
+      });
+  });
+  services.AddTransient<IAuthorizationHandler, IsHostRequirementHandler>();
+```
+
+* Add the [Authorize(...)] attribute to the ApiController method that we want to restrict and reference the policy name
+
+```C#
+  [Authorize(Policy = "IsActivityHost")]
+  [HttpPut("{id}")]
+  public async Task<IActionResult> EditActivity(Guid id, Activity activity)
+  {...}
+
+```

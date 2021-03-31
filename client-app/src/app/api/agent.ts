@@ -18,7 +18,7 @@ axios.interceptors.request.use(config => {
 })
 
 axios.interceptors.response.use(async response => {
-    await sleep(1000); //just a fun way to simulate delay of a real-world application
+    await sleep(1000); //just a simple way to simulate delay of a real-world application
     return response;
     }, (error: AxiosError) => {
     const {data, status, config} = error.response!;
@@ -45,7 +45,7 @@ axios.interceptors.response.use(async response => {
             toast.error('unauthorized');
             break;
         case 404:
-            //use the history object from react-router (exported from index.tsx)
+            //uses the history object from react-router (exported from index.tsx)
             history.push('/not-found');
             break;
         case 500:

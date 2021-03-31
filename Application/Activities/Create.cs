@@ -6,6 +6,7 @@ using FluentValidation;
 using MediatR;
 using Persistence;
 using Microsoft.EntityFrameworkCore;
+using Application.Interfaces;
 
 namespace Application.Activities
 {
@@ -27,7 +28,7 @@ namespace Application.Activities
         public class Handler : IRequestHandler<Command, Result<Unit>>
         {
             private readonly DataContext _context;
-        private readonly IUserAccessor _userAccessor;
+            private readonly IUserAccessor _userAccessor;
 
             public Handler(DataContext context, IUserAccessor userAccessor)
             {
