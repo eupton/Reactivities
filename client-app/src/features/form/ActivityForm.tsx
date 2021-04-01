@@ -1,5 +1,5 @@
 import { observer } from 'mobx-react-lite';
-import React, { useState, ChangeEvent, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useHistory, useParams } from 'react-router';
 import { Link } from 'react-router-dom';
 import {Segment, Button, Header } from 'semantic-ui-react';
@@ -13,23 +13,15 @@ import MyTextArea from '../../app/common/form/MyTextArea';
 import MySelectInput from '../../app/common/form/MySelectInput';
 import { categoryOptions } from '../../app/common/options/categoryOptions';
 import MyDateInput from '../../app/common/form/MyDateInput';
-import { Activity } from '../../app/models/activity';
+import { ActivityFormValues } from '../../app/models/activity';
 
 const ActivityForm = () => {
     const history = useHistory();
     const { activityStore } = useStore();
-    const { loadActivity, createActivity, updateActivity, loading, loadingInitial } = activityStore;
+    const { loadActivity, createActivity, updateActivity, loadingInitial } = activityStore;
     const {id} = useParams<{id: string}>();
 
-    const [activity, setActivity] = useState<Activity>({
-        id: '',
-        title: '',
-        category: '',
-        description: '',
-        date: null,
-        city: '',
-        venue: ''
-    });
+    const [activity, setActivity] = useState<ActivityFormValues>(new ActivityFormValues());
 
     const validationSchema = Yup.object({
         title: Yup.string().required('The activity title is required'),
@@ -41,18 +33,18 @@ const ActivityForm = () => {
     })
 
     useEffect(() => {
-        if (id) loadActivity(id).then(activity => setActivity(activity!))
+        if (id) loadActivity(id).then(activity => setActivity(new ActivityFormValues(activity)))
     }, [id, loadActivity]);
 
-    function handleFormSubmit(activity: Activity) {
-        if (activity.id.length === 0) {
-          let newActivity = {
-              ...activity,
-              id: uuid()
-          };
-          createActivity(newActivity).then(() => history.push(`/activities/${newActivity.id}`));
+    function handleFormSubmit(activity: ActivityFormValues) {
+        if (!activity.id) {
+            let newActivity = {
+                ...activity,
+                id: uuid()
+            };
+            createActivity(newActivity).then(() => history.push(`/activities/${newActivity.id}`))
         } else {
-          updateActivity(activity).then(() => history.push(`/activities/${activity.id}`));
+            updateActivity(activity).then(() => history.push(`/activities/${activity.id}`))
         }
     }
 
@@ -85,7 +77,7 @@ const ActivityForm = () => {
                         <Button 
                             disabled={isSubmitting || !dirty || !isValid}
                             floated='right' 
-                            loading={loading} 
+                            loading={isSubmitting} 
                             positive type='submit' 
                             content='Submit' />
                         <Button floated='right' type='button' content='Cancel' as={Link} to='/activities' />
